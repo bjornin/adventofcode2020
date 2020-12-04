@@ -1,13 +1,20 @@
-def part1(arg):
-    col = 0
+def get_trees(forrest, right, down):
     trees = 0
-    for row in range(0, len(arg)):
-        col = (row * 3) % len(arg[row])
-        trees += arg[row][col] == '#'
+    for row in range(0, len(forrest), down):
+        col = (row * right // down) % len(forrest[row])
+        trees += forrest[row][col] == '#'
     return trees
 
+def part1(arg):
+    return get_trees(arg, 3, 1)
+
 def part2(arg):
-    pass
+    return \
+        get_trees(arg, 1, 1)* \
+        get_trees(arg, 3, 1)* \
+        get_trees(arg, 5, 1)* \
+        get_trees(arg, 7, 1)* \
+        get_trees(arg, 1, 2)
 
 input = []
 with open('./input.txt', 'r') as f:
@@ -15,18 +22,4 @@ with open('./input.txt', 'r') as f:
 
 print('input rows:', len(input))
 print('part1', part1(input))
-
-# ........#....#..##..#...#.....# 0,0
-# ...............#....##........# 1,3
-# .#....##...##..#............... 2,6
-# .#.......#......#.##..##...#... 3,9
-# .....#.#....#..##...#.....#.... 4,12
-# ...#.#..##...###......#..#..#.# 5,15
-# ........#....#..##..#...#.....# 6,18
-# ...............#....##........# 7,21
-# .#....##...##..#............... 8,24
-# .#.......#......#.##..##...#... 9.27
-# .....#.#....#..##...#.....#.... 10,30
-# ...#.#..##...###......#..#..#.# 11,1
-# ........#....#..##..#...#.....# 12,4
-# ...............#....##........# 13,7
+print('part2', part2(input))
