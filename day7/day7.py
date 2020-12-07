@@ -12,7 +12,15 @@ def part1(arg):
     return len(parent)
 
 def part2(arg):
-    pass
+    queue = ['shiny gold']
+    ans = 0
+    while len(queue) > 0:
+        color = queue.pop()
+        for child in arg[color]:
+            ans += int(child[0])
+            for _ in range(int(child[0])):
+                queue.insert(0,child[1])
+    return ans
 
 def get_src(s):
     src_pattern = r'^(?P<src_color>\w+\s\w+)'
@@ -39,4 +47,4 @@ with open('./input.txt', 'r') as f:
 
 print('input rows:', len(input))
 print('part1', part1(clean_input(input)))
-print('part2', part2(input))
+print('part2', part2(clean_input(input)))
