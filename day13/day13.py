@@ -14,7 +14,19 @@ def part1(arg):
     return int(schedule[min_index]) * min_wait
 
 def part2(arg):
-    pass
+    _, schedule = arg
+    indexed_list = [(i, s) for i, s in enumerate(schedule) if s != 'x']
+    t = 1
+    while True:
+        rest = 0
+        for i, s in indexed_list:
+            rest += (t + i) % int(s)
+        if rest == 0:
+            return t
+        if t % 1000 == 0:
+            print(t)
+        t += 1
+
 
 input = []
 with open('./input.txt', 'r') as f:
@@ -33,5 +45,5 @@ def clean_input(input):
 print('input rows:', len(input))
 print('part1', part1(clean_input(input)))
 # print('part1test', part1(clean_input(test.strip().split('\n'))))
-# print('part2', part2(input))
+print('part2', part2(clean_input(input)))
 # print('part2', part2(clean_input(test.strip().split('\n'))))
