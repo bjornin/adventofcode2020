@@ -1,4 +1,5 @@
 from collections import deque
+from itertools import islice
 
 def part1(arg):
     player1, player2 = parse_input(arg)
@@ -13,26 +14,26 @@ def regular_play(p1, p2):
         card1 = p1.popleft()
         card2 = p2.popleft()
         if card1 > card2:
-            p1.append(card1)
-            p1.append(card2)
+            put_deck(p1, card1, card2)
         else:
-            p2.append(card2)
-            p2.append(card1)
-    if len(p1) != 0:
-        score = calc_score(p1)
-    else:
-        score = calc_score(p2)
+            put_deck(p2, card2, card1)
+    score = calc_score(p1 if len(p1) else p2)
     return score
 
 def recursive_play(p1,p2):
-    print('new game')
+    # print('new game')
+    mem = {}
+    force_p1 = False
     while (len(p1) > 0 and len(p2) > 0):
+        if is_recursion(mem, p1, p2):
+            force_p1 = True
+            break
         card1 = p1.popleft()
         card2 = p2.popleft()
-        print('new round', card1, card2)
+        # print('new round', card1, card2)
         if card1 <= len(p1) and card2 <= len(p2):
-            pp1 = p1[:card1].copy()
-            pp2 = p2[:card2].copy()
+            pp1 = deque(islice(p1, 0, card1))
+            pp2 = deque(islice(p2, 0, card2))
             if recursive_play(pp1, pp2)[0]:
                 put_deck(p1, card1, card2)
             else:
@@ -41,9 +42,17 @@ def recursive_play(p1,p2):
             put_deck(p1, card1, card2)
         else:
             put_deck(p2, card2, card1)
-    winner = len(p1) > len(p2)
+    winner = force_p1 or len(p1) > len(p2)
     score = calc_score(p1 if winner else p2)
     return winner, score
+
+def is_recursion(mem, p1, p2):
+    key1 = 'p1'+str(list(p1))
+    key2 = 'p2'+str(list(p2))
+    seen = mem.get(key1, False) or mem.get(key2, False)
+    mem[key1] = True
+    mem[key2] = True
+    return seen
 
 def calc_score(deck):
     return sum(map(lambda v, m: v * m, deck, range(len(deck), 0, -1)))
@@ -73,6 +82,6 @@ def get_input(filename):
     return input
 
 # print('part1', part1(get_input('./input.txt')))
-print('part1', part1(get_input('./test_input.txt')))
-# print('part2', part2(get_input('./input.txt')))
-print('part2', part2(get_input('./test_input.txt')))
+# print('part1', part1(get_input('./test_input.txt')))
+print('part2', part2(get_input('./input.txt')))
+# print('part2', part2(get_input('./test_input.txt')))
