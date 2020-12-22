@@ -11,7 +11,6 @@ def part2(arg):
     image = Image(tiles)
     num_hash = image.count_hash()
     num_monster = image.count_monster()
-    print(num_monster)
     return num_hash - num_monster * 15
 
 Tile = namedtuple('Tile', 'number data', defaults=(None,None))
@@ -21,18 +20,12 @@ class Image():
         size = int(math.sqrt(len(tiles)))
         self.tiles = tiles
         self.image = [[Tile() for _ in range(size)] for _ in range(size)]
-        print('solve')
         self.solve()
-        for row in range(len(self.image)):
-            for col in range(len(self.image)):
-                print(row, col, self.image[row][col].number)
-        print('trim')
         self.trim_image()
         
     def solve(self): # backtracking
         row, col = self.get_empty_cell()
         if row < 0 or col < 0:
-            print('Done')
             return True
         used_tiles = []
         for r in range(len(self.image)):
@@ -89,7 +82,7 @@ class Image():
 
     def count_hash(self):
         flat = [h for sub in self.trimmed_image.values() for h in sub]
-        return sum([1 for ele in flat if ele == '#'])
+        return flat.count('#')
 
     def count_monster(self):
         num_monster = 0
@@ -100,43 +93,21 @@ class Image():
         # #    ##    ##    ###
         #  #  #  #  #  #  #    
         # flat monster
-        monster = [0,l-18,l-13,l-12,l-6,l-5,l-1,l,l+1,2*l-17,2*l-14,2*l-11,2*l-8,2*l-5,2*l-2]
+        monster = [0,l-18,l-13,l-12,l-7,l-6,l-1,l,l+1,2*l-17,2*l-14,2*l-11,2*l-8,2*l-5,2*l-2]
         for _ in range(2): # flip
             image = flip_h(image)
             for _ in range(4): # rotate
                 image = rotate_cw(image)
-                for start in range(len(flat)):
-                    found = True
-                    for m in monster:
-                        if flat[start + m] != '#':
-                            found = False
-                            break
-                    num_monster += found
+                flat = [h for sub in image for h in sub]
+                for start in range(len(flat) - max(monster)):
+                    if flat[start] == '#':
+                        found = True
+                        for m in monster:
+                            if flat[start + m] != '#':
+                                found = False
+                                break
+                        num_monster += found
         return num_monster
-
-    # def count_monster(self):
-    #     num_monster = 0
-    #     image = list(self.trimmed_image.values())
-    #     l = len(image)
-    #     # monster form
-    #     #                   # 
-    #     # #    ##    ##    ###
-    #     #  #  #  #  #  #  #    
-    #     # flat monster
-    #     monster = [0,l-18,l-13,l-12,l-6,l-5,l-1,l,l+1,2*l-17,2*l-14,2*l-11,2*l-8,2*l-5,2*l-2]
-    #     for _ in range(2): # flip
-    #         image = flip_h(image)
-    #         for _ in range(4): # rotate
-    #             image = rotate_cw(image)
-    #             flat = [h for sub in image for h in sub]
-    #             for start in range(len(flat)):
-    #                 found = True
-    #                 for m in monster:
-    #                     if flat[start + m] != '#':
-    #                         found = False
-    #                         break
-    #                 num_monster += found
-    #     return num_monster
 
 def categorize_tiles(tiles):
     corners = []
@@ -144,7 +115,6 @@ def categorize_tiles(tiles):
     fill = []
     for t in tiles:
         matching_borders = match(t, tiles)
-        print(t, matching_borders)
         if matching_borders == 2:
             corners.append(t)
         elif matching_borders == 3:
@@ -198,7 +168,7 @@ def get_input(filename):
         input = [x.strip() for x in f]
     return input
 
-# print('part1', part1(get_input('./input.txt')))
+print('part1', part1(get_input('./input.txt')))
 # print('part1', part1(get_input('./test_input.txt')))
 print('part2', part2(get_input('./input.txt')))
 # print('part2', part2(get_input('./test_input.txt')))
