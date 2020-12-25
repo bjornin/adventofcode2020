@@ -1,89 +1,92 @@
-from collections import deque
-from array import array
+
+class Node:
+    def __init__(self, value):
+        self.value = value
+        self.next = None
+
+    def __repr__(self):
+        return str(self.value)
+
+class CircularLinkedList:
+    def __init__(self, nodes=None):
+        self.head = None
+        self.cup = {}
+        if nodes is not None:
+            self.max = len(nodes)
+            n = nodes.pop(0)
+            node = Node(n)
+            self.cup[n] = node
+            self.head = node
+            for n in nodes:
+                node.next = Node(n)
+                node = node.next
+                self.cup[n] = node
+            node.next = self.head
+    
+    def __repr__(self):
+        n = self.head
+        ns = []
+        while n is not None:
+            ns.append(str(n))
+            n = n.next
+            if n is self.head:
+                break
+        return ','.join(ns)
+
+    def move(self, src):
+        chunk = src.next
+        dst = self.get_dst(src, chunk)
+        src.next = chunk.next.next.next
+        chunk.next.next.next = dst.next
+        dst.next = chunk
+
+    def get_dst(self, src, exclude):
+        exclude_values = [exclude.value, exclude.next.value, exclude.next.next.value]
+        n = src
+        v = n.value - 1
+        if v == 0:
+            v = self.max
+        while v in exclude_values:
+            v -= 1
+            if v == 0:
+                v = self.max
+        n = self.get(v)
+        return n
+
+    def get(self, value):
+        return self.cup[value]
+
+def part1(arg, pad_to, turns):
+    c = solve(arg, pad_to, turns)
+    n = c.get(1).next
+    ret = ''
+    while n.value != 1:
+        ret += str(n.value)
+        n = n.next
+    return ret
+
+def part2(arg, pad_to, turns):
+    c = solve(arg, pad_to, turns)
+    n = c.get(1)
+    return n.next.value * n.next.next.value
 
 def solve(arg, pad_to, turns):
     circle = create_circle(arg, pad_to)
-    current_cup_index = 0
-    # print(circle)
-    for i in range(turns):
-        if i % 1000 == 0:
-            print(i)
-        current_cup_value = circle[current_cup_index]
-        yanked_index = [(current_cup_index + i) % len(circle) for i in range(1,4)]
-        dest_cup_index = get_dest_cup(current_cup_value, yanked_index, circle)
-        # print(circle, current_cup_value, circle[dest_cup_index], [circle[i] for i in yanked_index])
-        move(current_cup_index, dest_cup_index, yanked_index, circle)
-        # print(circle)
-        current_cup_index = (circle.index(current_cup_value) + 1) % len(circle)
-    return get_answer_2(circle)
-
-def get_dest_cup(current_cup_value, yanked_index, circle):
-    target = current_cup_value - 1
-    yanked = [circle[i] for i in yanked_index]
-    while True:
-        if target < min(circle): # save for optimization
-            target = max(circle) # save for optimization
-        if target in yanked:
-            target -= 1
-        else:
-            break
-    return circle.index(target)
-
-def move(current_cup_index, dest_cup_index, yanked_index, circle):
-    upper = [x for x in yanked_index if x > dest_cup_index]
-    lower = sorted(list(set(yanked_index).difference(upper)))
-    # print(lower, upper)
-    if lower:
-        yank_slice = slice(lower[0], lower[-1] + 1)
-        put_slice = slice(dest_cup_index - len(lower) + 1, dest_cup_index + 1)
-        l_fill_slice = slice(lower[0], dest_cup_index - len(lower) + 1)
-        r_fill_slice = slice(lower[-1] + 1, dest_cup_index + 1)
-        circle[put_slice], circle[l_fill_slice] = circle[yank_slice], circle[r_fill_slice]
-    if upper:
-        dest_cup_index -= len(lower)
-        yank_slice = slice(upper[0], upper[-1] + 1)
-        put_slice = slice(dest_cup_index + 1, dest_cup_index + len(upper) + 1)
-        l_fill_slice = slice(dest_cup_index + 1, upper[0])
-        r_fill_slice = slice(dest_cup_index + len(upper) + 1, upper[-1] + 1)
-        circle[r_fill_slice], circle[put_slice] = circle[l_fill_slice], circle[yank_slice]
-
-
-def get_answer_1(circle):
-    start = circle.index(1) + 1
-    ans = ''.join(str(circle[(i + start) % len(circle)]) for i in range(len(circle) - 1))
-    return ans
+    current_cup = circle.head
+    for _ in range(turns):
+        circle.move(current_cup)
+        current_cup = current_cup.next
+    return circle
 
 def create_circle(input, maxlen):
-    cup_list = array('I', [int(i) for i in input] + list(range(len(input) + 1,maxlen + 1)))
+    cups = [int(i) for i in input] + list(range(len(input) + 1,maxlen + 1))
+    cup_list = CircularLinkedList(cups)
     return cup_list
-
-def get_answer_2(circle):
-    ind = circle.index(1)
-    if ind == len(circle) - 1:
-        ind = -1
-    return circle[ind + 1] * circle[ind + 2]
-
-
-def put_after(cup, values, circle):
-    rot = circle.index(cup) + 1
-    circle.rotate(-rot)
-    for i in values[::-1]:
-        circle.appendleft(i)
-    circle.rotate(rot)
-
-def yank_after(cup, count, circle):
-    rot = circle.index(cup) + 1
-    ret = []
-    circle.rotate(-rot)
-    for _ in range(count):
-        ret.append(circle.popleft())
-    circle.rotate(rot)
-    return ret
-
 
 input = '712643589'
 test_input = '389125467'
 
-# print('part1', solve(input, 0, 100))
-# print('part1', solve(test_input, 0, 100))
-print('part2', solve(input, 1000000, 400))
+print('part1', part1(input, 0, 100))
+# print('part1', part1(test_input, 0, 10))
+print('part2', part2(input, 1000000, 10000000))
+# print('part2', part2(test_input, 0, 10))
